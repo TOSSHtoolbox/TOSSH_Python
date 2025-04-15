@@ -17,24 +17,25 @@ def get_indices(x_vals, segment, num_x):
         fmin_index: Index of the maximum value of the segment in the x grid space
         fmax_index: Index of the minimum value of the segment in the x grid space
         nf: Number of grids that the recession segment covered
+        
     """
     # Calculate fmax_index
-    if segment.iloc[0].item() >= x_vals.max():
-        fmax_index = 0
+    fmax_candidate = np.where(segment[0] >= x_vals)[0]
+    if len(fmax_candidate) == 0:
+        fmax_index = num_x - 1
     else:
-        fmax_index = num_x - np.searchsorted(x_vals[::-1], segment.iloc[0], side="left")
-        fmax_index = int(np.floor(fmax_index.item()))
+        fmax_index = fmax_candidate[0]
 
     # Calculate fmin_index
-    if segment.iloc[-1].item() <= x_vals.min():
+    fmin_candidate = np.where(segment[-1] >= x_vals)[0]
+    if len(fmin_candidate) == 0:
         fmin_index = num_x - 1
     else:
-        fmin_index = num_x - np.searchsorted(
-            x_vals[::-1], segment.iloc[-1], side="left"
-        )
-        fmin_index = int(np.floor(fmin_index.item()))
+        fmin_index = fmin_candidate[0]
 
     # Number of grids that the recession segment covered
+    # NOTE: nf is different equation in this python version vs matlab. This stems from
+    # +1 range endpoint in MATLAB vs. exclusive end in Python
     nf = fmin_index - fmax_index
 
     return fmin_index, fmax_index, nf
@@ -193,30 +194,39 @@ def util_MasterRecessionCurve(
         # Add jitter to everything except the first value of each segment
         segments = []
         for i in range(numsegments):
-            # Retrieve the recession segment x dta values
-            segment = Q[
+            # Retrieve x data values of the recession segment with i-th largest x values
+            # Convert from pandas to numpy array
+            _segment = Q[
                 flow_section[sortind.iloc[i], 0] : flow_section[
                     sortind.iloc[i], 1
                 ]
-                + 1
-            ]
+            ].to_numpy()
+
+            # ADDED: Truncate the nan data at the beginning and the end (important for satellite data)
+            first_valid_idx = np.argmax(~np.isnan(_segment))
+            last_valid_idx = len(_segment) - np.argmax(~np.isnan(_segment[::-1]))
+            segment = _segment[first_valid_idx:last_valid_idx]
 
             # Add jitter
             segment[1:] += np.random.normal(0, jitter_size, len(segment) - 1)
 
-            # TODO: Have not translated the following part of the Matlab code
-            # % avoid negative segment values
-            # segment = abs(segment)+1e-20;
+            # NOTE: this sorting part has been skipped: sometimes problematic and distort recession timescale
+            # especially when applied to soil moisture data with diurnal cycles
             # % sort the segment with jitter, in case eps parameter was used
             # % and so thereare small increases during the recessions
             # segment = sort(segment,'descend');
+
+            # Avoid negative segment values
+            segment[segment < 0] = 0
 
             # Store
             segments.append(segment)
 
         # Get flow values where curves should be matched
         max_Q = max([np.max(seg) for seg in segments])
-        min_Q = max(min([np.min(seg) for seg in segments]), jitter_size)
+        min_Q = min([np.min(seg) for seg in segments])
+        if min_Q <= 0:
+            min_Q = jitter_size
 
         # _________________________________________________________________________________
         # Get interpolated Q values where MRC will be evaluated
@@ -241,6 +251,7 @@ def util_MasterRecessionCurve(
             ]
             Q_vals[-1] = min_Q
             Q_vals[0] = max_Q
+            Q_vals = np.sort(np.unique(Q_vals))[::-1] # sort in descending order
 
         else:
             raise ValueError("Match method for MRC not a recognized option.")
@@ -252,15 +263,13 @@ def util_MasterRecessionCurve(
         for i, segment in enumerate(segments):
 
             # Find indices where elements should be inserted to maintain order.
-            # numpy.searchsorted(a, v, side='left', sorter=None)
-            # x_vals[i-1] < segment.iloc[0] <= x_vals[i]
 
             # fmin_index, fmax_index: Get the grid index where the x data's maximum and minumim values fall onto
             # nf: Number of grids that the recession segment covered
             fmin_index, fmax_index, nf = get_indices(Q_vals, segment, num_Q)
 
             # If it is too short, flag it
-            if nf <= 0:
+            if nf <= 1:
                 short_segs[i] = True
 
         # Check if any segments are left after flagging
@@ -293,28 +302,10 @@ def util_MasterRecessionCurve(
         # Extract and interpolate each segment
         for i, _segment in enumerate(segments):
 
-            # Truncate the nan data at the beginning (important for satellite data)
-            segment = _segment.loc[_segment.first_valid_index() :]
-
-            if segment.iloc[0] < running_min:
-                # TODO: this part is not tranlated from MATLAB
-                # if segment(1) < running_min
-                #     segment = [running_min , segment];
-                # end
-                # if there is a gap between previous segments and this one,
-                # then interpolate with a vertical line
-
-                # Find indices of max and min interpolated flow values for this segment
-                first_index = segment.index.min()
-                running_min_series = pd.DataFrame(
-                    [running_min + jitter_size],
-                    index=[first_index - 1],
-                    columns=[segment.name],
-                )
-
-                # Concatenate running_min as the first row and reset the index
-                segment = pd.concat([running_min_series, segment])
-                # segments[i] = segment  # Replace it
+            # if there is a gap between previous segments and this one,
+            # then interpolate with a vertical line
+            if segment[0] < running_min:
+                segment = np.concat([[running_min], segment])
 
             # ______________________________________
             # Get the index of flow segment in x grids
@@ -327,17 +318,9 @@ def util_MasterRecessionCurve(
                 continue
 
             # ______________________________________
-            # Make sure the data type is correct
-            y_vals = segment.values  # Get the values from the DataFrame
-
-            # If y_vals has shape (nrows, 1), squeeze to (nrows,)
-            if len(y_vals.shape) > 1 and y_vals.shape[1] == 1:
-                y_vals = np.squeeze(y_vals)
-
-            # ______________________________________
-            # interpolate each segment onto the flow values
+            # Get the segment index values corresponding to the grid-x values
             interp_segment = interp1d(
-                x=y_vals,
+                x=segment,
                 y=np.arange(0, len(segment)),
                 kind="linear",
                 fill_value="extrapolate",
@@ -357,9 +340,11 @@ def util_MasterRecessionCurve(
             if i == 0:
                 # Lag of the first segment is set to zero
                 msp_matrix[mspcount : mspcount + nf, :] = np.c_[
-                    np.arange(mspcount, mspcount + nf),
-                    np.arange(numsegments + fmax_index, numsegments + fmin_index),
-                    -np.ones(nf),
+                    np.arange(mspcount, mspcount + nf),  # --> Column 0
+                    np.arange(
+                        numsegments + fmax_index, numsegments + fmin_index
+                    ),  # --> Column 1
+                    -np.ones(nf),  # --> Column 2
                 ]
                 b_matrix[mcount : mcount + nf] = interp_segment
             else:
@@ -367,16 +352,20 @@ def util_MasterRecessionCurve(
                 msp_matrix[mspcount : mspcount + 2 * nf, :] = np.c_[
                     np.r_[
                         np.arange(mcount, mcount + nf), np.arange(mcount, mcount + nf)
-                    ],  # Column 1
+                    ],  # --> Column 0
                     np.r_[
-                        (i - 1) * np.ones(nf),  # First element of Column 2
+                        (i - 1)
+                        * np.ones(
+                            nf
+                        ),  # --> Column 1 (first half) # Not really sure why this is i-1
                         np.arange(
                             numsegments + fmax_index, numsegments + fmin_index
-                        ),  # Second element of Column 2
+                        ),  # --> Column 1 (second half)
                     ],
-                    np.r_[np.ones(nf), -np.ones(nf)],  # Column 3
+                    np.r_[np.ones(nf), -np.ones(nf)],  # --> Column 2
                 ]
                 b_matrix[mcount : mcount + nf] = interp_segment
+
 
             # update count of rows in the optimisation matrix
             mcount += nf
@@ -399,15 +388,26 @@ def util_MasterRecessionCurve(
         # Cut off unused rows of optimization matrix
         B_mat = -b_matrix[:mcount]
 
+
         # Delete unused columns of minimization matrix
-        bad_segs = np.array(bad_segs)
         if len(bad_segs) > 0:
-            # Delete columns from m_sparse corresponding to bad segments
-            row_indices = np.delete(
-                np.arange(m_sparse.shape[1]), np.array(bad_segs) - 1
-            )
-            m_sparse = m_sparse[:, row_indices]
-            # Update the number of segments
+            # Create boolean mask
+            num_cols = m_sparse.shape[1]
+            mask = np.ones(num_cols, dtype=bool)
+
+            for idx in bad_segs:
+                mask[idx] = False
+
+            # Convert to CSC for column slicing
+            m_sparse = m_sparse.tocsc()
+
+            # Apply the column mask
+            m_sparse = m_sparse[:, mask]
+
+            # Optional: back to CSR
+            m_sparse = m_sparse.tocsr()
+
+            # Update number of segments
             numsegments -= len(bad_segs)
 
         # Minimize differences to Master Recession Curve (MRC)
@@ -469,7 +469,7 @@ def concat_segment_array(segments, lags):
         # Append the x-values and corresponding segment values
         Q_values.append(x)
         segment_values.append(
-            segment.values
+            segment
         )  # Assuming 'segment' is a pandas DataFrame or Series
 
     # Convert the lists to numpy arrays and concatenate them vertically
@@ -517,13 +517,13 @@ def plot_mrc_fit(segments, lags, title="Nonparametric MRC fit"):
 
             # Plot the start point as a red dot
             ax.plot(
-                (lags[i] + 1) / timestep, segment.iloc[0], "ro", markersize=3, alpha=0.3
+                (lags[i] + 1) / timestep, segment[0], "ro", markersize=3, alpha=0.3
             )  # Start point
 
             # Plot the end point as a red dot
             ax.plot(
                 (lags[i] + len(segment)) / timestep,
-                segment.iloc[-1],
+                segment[-1],
                 "ro",
                 markersize=3,
                 alpha=0.3,
