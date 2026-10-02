@@ -6,6 +6,7 @@ with generate_reference.py (requires MATLAB). Running these tests does not requi
 import copy
 import json
 import pathlib
+import sys
 
 import numpy as np
 import pandas as pd
@@ -13,6 +14,7 @@ import pytest
 
 here = pathlib.Path(__file__).resolve().parent
 repo = here.parents[1]
+sys.path.insert(0, str(repo))  # makes TOSSH_code importable regardless of where pytest is started
 data_file = repo / "example" / "example_data" / "33029_daily.csv"
 reference_file = here / "reference" / "reference.json"
 cases = json.loads((here / "cases.json").read_text())
