@@ -17,3 +17,6 @@ example/results/CAMELS_GB_TOSSH_signatures.mat
 example/results/CAMELS_TOSSH_signatures.mat
 _build/
 .idea/
+__pycache__/
+.pytest_cache/
+tests/test_notebook.ipynb

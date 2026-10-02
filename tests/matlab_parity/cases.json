@@ -1,0 +1,12 @@
+[
+  {"name": "BFI_default",          "function": "sig_BFI", "inputs": ["Q", "t"], "options": {}},
+  {"name": "BFI_UKIH_10",          "function": "sig_BFI", "inputs": ["Q", "t"], "options": {"method": "UKIH", "parameters": [10]}},
+  {"name": "BFI_LyneHollick",      "function": "sig_BFI", "inputs": ["Q", "t"], "options": {"method": "Lyne_Hollick"}},
+  {"name": "BFI_LyneHollick_095",  "function": "sig_BFI", "inputs": ["Q", "t"], "options": {"method": "Lyne_Hollick", "parameters": [0.95, 3]}},
+  {"name": "LyneHollickFilter_default", "function": "util_LyneHollickFilter", "inputs": ["Q"], "options": {}},
+  {"name": "LyneHollickFilter_3passes", "function": "util_LyneHollickFilter", "inputs": ["Q"], "options": {"filter_parameter": 0.925, "nr_passes": 3}},
+  {"name": "LyneHollickFilter_2passes", "function": "util_LyneHollickFilter", "inputs": ["Q"], "options": {"filter_parameter": 0.925, "nr_passes": 2}},
+  {"name": "UKIH_Method_default",  "function": "util_UKIH_Method", "inputs": ["Q"], "options": {}},
+  {"name": "UKIH_Method_10",       "function": "util_UKIH_Method", "inputs": ["Q"], "options": {"n_days": 10}},
+  {"name": "TotalRR",              "function": "sig_TotalRR", "inputs": ["Q","t","P"], "options": {}}
+]
