@@ -22,8 +22,8 @@ def util_LyneHollickFilter(Q, filter_parameter=0.925, nr_passes=1, threshold_typ
 
     if not isinstance(nr_passes, int) or nr_passes < 1:
         raise ValueError(
-            "Number of filter passes must be an integer greater than zero.")  # also needs to be an odd number!
-
+            "Number of filter passes must be an integer greater than zero.")  
+    
     threshold_type = threshold_type.lower()
     if threshold_type not in ['end', 'timestep', 'pass', 'none']:
         raise ValueError("Not a valid thresholding method. Choose either end, timestep, pass, or none.")
@@ -36,8 +36,10 @@ def util_LyneHollickFilter(Q, filter_parameter=0.925, nr_passes=1, threshold_typ
     Q_b = LyneHollickFilter(Q_tmp, filter_parameter, threshold_type)
     for _ in range(1, nr_passes):
         Q_b = LyneHollickFilter(np.flip(Q_b), filter_parameter, threshold_type)
-        Q_b = np.flip(Q_b)  # Flip back to original direction
 
+    if nr_passes % 2 == 0: #flip if even number of passes
+        Q_b = np.flip(Q_b)
+        
     Q_b[nan_mask] = np.nan  # Set baseflow to NaN where streamflow is NaN
 
     # constrain baseflow not to be higher than streamflow
