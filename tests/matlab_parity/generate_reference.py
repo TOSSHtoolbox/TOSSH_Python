@@ -1,4 +1,4 @@
-"""Regenerate reference/reference.json by running the MATLAB version of TOSSH.
+"""Regenerate the reference values (reference/<case name>.mat) by running the MATLAB version of TOSSH.
 
 Requires MATLAB. By default, the MATLAB TOSSH repository is expected next to this repository
 (e.g. C:/Projects/_TOSSH/TOSSH). Set the environment variable TOSSH_MATLAB_PATH to use another location,
