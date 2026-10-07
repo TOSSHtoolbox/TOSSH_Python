@@ -39,7 +39,8 @@ Numeric outputs are compared with a relative tolerance of `1e-6`. Error strings 
 
    - `name`: unique name (letters, numbers and underscores only, as it is used as a MATLAB field name)
    - `function`: function name, identical in MATLAB and Python
-   - `inputs`: columns of the example data passed as positional inputs (`t`, `Q`, `P`, `PET`, `T`)
+   - `inputs`: columns of the example data passed as positional inputs (`t`, `Q`, `P`, `PET`, `T`);
+     non-string entries are passed as fixed values, e.g. `["Q", "t", [5, 50, 95]]` for `sig_x_percentile`
    - `options`: optional name-value arguments (MATLAB) / keyword arguments (Python)
 
 2. Regenerate the reference values (requires MATLAB):
