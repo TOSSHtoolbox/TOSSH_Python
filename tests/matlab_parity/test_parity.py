@@ -58,7 +58,7 @@ def test_matches_matlab(case):
         pytest.skip("no MATLAB reference values for this case, run generate_reference.py")
 
     function = find_function(case["function"])
-    inputs = [data[name].copy() for name in case["inputs"]]
+    inputs = [data[name].copy() if isinstance(name, str) else name for name in case["inputs"]]
     outputs = function(*inputs, **copy.deepcopy(case["options"]))
     if not isinstance(outputs, tuple):
         outputs = (outputs,)

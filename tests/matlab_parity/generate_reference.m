@@ -38,7 +38,11 @@ for i = 1:numel(cases)
     % collect input time series
     inputs = cell(1, numel(c.inputs));
     for k = 1:numel(c.inputs)
-        inputs{k} = data.(c.inputs{k});
+        if ischar(c.inputs{k})
+            inputs{k} = data.(c.inputs{k}); % column of the example data
+        else
+            inputs{k} = c.inputs{k}; % fixed value, e.g. x of sig_x_percentile
+        end
     end
 
     % convert options to name-value pairs
