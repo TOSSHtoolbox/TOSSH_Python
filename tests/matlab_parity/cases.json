@@ -10,5 +10,8 @@
   {"name": "UKIH_Method_10",       "function": "util_UKIH_Method", "inputs": ["Q"], "options": {"n_days": 10}},
   {"name": "TotalRR",              "function": "sig_TotalRR", "inputs": ["Q","t","P"], "options": {}},
   {"name": "Percentiles",          "function": "sig_x_percentile",  "inputs": ["Q","t",[0, 5, 50, 95, 100]], "options": {}},
-  {"name": "FDC",                  "function": "sig_FDC",     "inputs": ["Q","t"], "options": {}}
+  {"name": "FDC",                  "function": "sig_FDC",     "inputs": ["Q","t"], "options": {}},
+  {"name": "FDC_slope_default",    "function": "sig_FDC_slope", "inputs": ["Q","t"], "options": {}},
+  {"name": "FDC_slope_linear",     "function": "sig_FDC_slope", "inputs": ["Q","t"], "options": {"fitLogSpace": false}},
+  {"name": "FDC_slope_range_02_1", "function": "sig_FDC_slope", "inputs": ["Q","t"], "options": {"slope_range": [0.2, 1]}}
 ]
