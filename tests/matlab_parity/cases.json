@@ -13,5 +13,6 @@
   {"name": "FDC",                  "function": "sig_FDC",     "inputs": ["Q","t"], "options": {}},
   {"name": "FDC_slope_default",    "function": "sig_FDC_slope", "inputs": ["Q","t"], "options": {}},
   {"name": "FDC_slope_linear",     "function": "sig_FDC_slope", "inputs": ["Q","t"], "options": {"fitLogSpace": false}},
-  {"name": "FDC_slope_range_02_1", "function": "sig_FDC_slope", "inputs": ["Q","t"], "options": {"slope_range": [0.2, 1]}}
+  {"name": "FDC_slope_range_02_1", "function": "sig_FDC_slope", "inputs": ["Q","t"], "options": {"slope_range": [0.2, 1]}},
+  {"name": "HFD_mean",                  "function": "sig_HFD_mean", "inputs": ["Q","t"], "options": {}}
 ]
