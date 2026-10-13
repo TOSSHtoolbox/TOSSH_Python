@@ -15,5 +15,8 @@
   {"name": "FDC_slope_linear",     "function": "sig_FDC_slope", "inputs": ["Q","t"], "options": {"fitLogSpace": false}},
   {"name": "FDC_slope_range_02_1", "function": "sig_FDC_slope", "inputs": ["Q","t"], "options": {"slope_range": [0.2, 1]}},
   {"name": "HFD_mean",             "function": "sig_HFD_mean", "inputs": ["Q","t"], "options": {}},
-  {"name": "VariabilityIndex",     "function": "sig_VariabilityIndex", "inputs": ["Q","t"], "options": {}}
+  {"name": "VariabilityIndex",     "function": "sig_VariabilityIndex", "inputs": ["Q","t"], "options": {}},
+  {"name": "QP_elasticity_default","function": "sig_QP_elasticity", "inputs": ["Q","t","P"], "options":{}},
+  {"name": "QP_elasticity_Sawicz","function": "sig_QP_elasticity", "inputs": ["Q","t","P"], "options":{"method": "Sawicz"}},
+  {"name": "QP_elasticity_wateryear","function": "sig_QP_elasticity", "inputs": ["Q","t","P"], "options":{"method": "Sanka", "start_water_year": 10}}
 ]
