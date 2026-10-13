@@ -32,13 +32,15 @@ def util_AggregateTimeSeries(X, t, **kwargs):
         String containing error description
     """
 
+    # default values
+    start_water_year = kwargs.get('start_water_year',1)
+
+
     X = np.asarray(X, dtype=float).flatten()
 
     if not isinstance(start_water_year, (int, np.integer)) or not 1 <= start_water_year <= 12:
         raise ValueError("start_water_year must be an integer between 1 and 12.")
 
-    # default values
-    start_water_year = kwargs.get('start_water_year',1)
 
     # default setting reads as good data
     error_flag = 0
