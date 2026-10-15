@@ -18,5 +18,10 @@
   {"name": "VariabilityIndex",     "function": "sig_VariabilityIndex", "inputs": ["Q","t"], "options": {}},
   {"name": "QP_elasticity_default","function": "sig_QP_elasticity", "inputs": ["Q","t","P"], "options":{}},
   {"name": "QP_elasticity_Sawicz","function": "sig_QP_elasticity", "inputs": ["Q","t","P"], "options":{"method": "Sawicz"}},
-  {"name": "QP_elasticity_wateryear","function": "sig_QP_elasticity", "inputs": ["Q","t","P"], "options":{"method": "Sanka", "start_water_year": 10}}
+  {"name": "QP_elasticity_wateryear","function": "sig_QP_elasticity", "inputs": ["Q","t","P"], "options":{"method": "Sanka", "start_water_year": 10}},
+  {"name": "x_Q_duration_no",      "function": "sig_x_Q_duration", "inputs": ["Q","t","no"], "options": {}},
+  {"name": "x_Q_duration_high",    "function": "sig_x_Q_duration", "inputs": ["Q","t","high"], "options": {}},
+  {"name": "x_Q_duration_low",     "function": "sig_x_Q_duration", "inputs": ["Q","t","low"], "options": {}},
+  {"name": "x_Q_duration_custom_high", "function": "sig_x_Q_duration", "inputs": ["Q","t","custom_high"], "options": {"threshold": 2}},
+  {"name": "x_Q_duration_custom_low",  "function": "sig_x_Q_duration", "inputs": ["Q","t","custom_low"], "options": {"threshold": 0.5}}
 ]
